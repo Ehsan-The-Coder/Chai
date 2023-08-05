@@ -7,7 +7,6 @@ describe("chai contract",function()
   this.timeout(60*60*1000); // Set timeout 10 mints(or adjust as needed)
   let Chai;
   let chai;
-  let memos;
   let _allAddress;
   this.beforeEach(async function()
   {
@@ -17,7 +16,25 @@ describe("chai contract",function()
   });
 
 
-
+  async function lengthOfMemos()
+  {
+    const memos=await chai.getMemo();
+    return memos.length;
+  }
+  async function listOfMemos()
+  {
+    const memos=await chai.getMemo();
+    for (let i = 0; i < memos.length; i++) 
+    {
+      const memo = memos[i];
+      console.log(`name:${memo.name} message:${memo.message} timestamp:${formatDate(memo.timestamp.toNumber())} from:${memo.from}`);
+    }
+  }
+  function formatDate(timestamp) 
+  {
+    const date = new Date(timestamp * 1000); // Multiply by 1000 to convert to milliseconds
+    return date.toUTCString(); // Convert the date to a human-readable string
+  }  
   async function buyChai()
   {
     //randomly generating user 
@@ -31,8 +48,7 @@ describe("chai contract",function()
     //before buying variables 
     let _UBalanceBefore = await ethers.provider.getBalance(_allAddress[_user].address);
     let _ownerBalanceBefore=await ethers.provider.getBalance(_allAddress[0].address);
-    [memos] = await chai.getMemo();
-    //let _participantsBeforeBuy=memos.length;
+    let _participantsBeforeBuy=await lengthOfMemos();
     
     //lets buy lottery    
     let tx = await chai.connect(_allAddress[_user]).buyChai(_user.toString(),_allAddress[_user].address.toString(),{value:_numbOfEthersToTransfer});
@@ -43,25 +59,41 @@ describe("chai contract",function()
     let _UBalanceAfter = await ethers.provider.getBalance(_allAddress[_user].address);
     let _UBalanceAfterBuySumGasAndLotteryAmount=_UBalanceAfter.add(_numbOfEthersToTransfer).add(gasCost);
     let _ownerBalanceAfter=await ethers.provider.getBalance(_allAddress[0].address);
-    [memos] = await chai.getMemo();
-    let _participantsAfterBuy=memos.length;
-
+    let _participantsAfterBuy=await lengthOfMemos();
     //log
-    _message=`User: ${_user} || address: ${_allAddress[_user].address} || buy chai & pay amount: ${ethers.utils.formatEther(_numbOfEthersToTransfer)}`;
+    _message=`user: ${_user} || address: ${_allAddress[_user].address} || buy chai & pay amount: ${ethers.utils.formatEther(_numbOfEthersToTransfer)}`;
     console.log(_message);
+    _message=`owner balance before:${hre.ethers.utils.formatEther(_ownerBalanceBefore)} || owner balance after:${ ethers.utils.formatEther(_ownerBalanceAfter)}`;
+    console.log(_message);
+    console.log("<----------------------------------------------------------------------------->");
 
     //verify all 
     //using chai-bignumber library to handle extremly large numbers 
     expect(_UBalanceBefore.toString()).to.be.equal((_UBalanceAfterBuySumGasAndLotteryAmount.toString()).toString());
     expect(_ownerBalanceBefore.toString()).to.be.equal((_ownerBalanceAfter.sub(_numbOfEthersToTransfer)).toString());
-    //expect(_participantsBeforeBuy).to.equal(_participantsAfterBuy-1);
+    expect(_participantsBeforeBuy).to.equal(_participantsAfterBuy-1);
   }
 
   describe("Deploy",function()
   {
-    it("lets deploy it ", async function()
+    it("check if the user able to buy single chai ", async function()
     {
       await buyChai();
+    });
+    it("check if the multiple user able to buy chai ", async function()
+    {
+      for(let i=0; i<10;i++)
+      {
+        await buyChai();
+      }
+    });
+    it("check if we can see the list of buyer", async function()
+    {
+      for(let i=0; i<10;i++)
+      {
+        await buyChai();
+      }
+      listOfMemos();
     });
   });
 });
