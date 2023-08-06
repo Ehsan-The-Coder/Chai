@@ -51,7 +51,7 @@ describe("chai contract",function()
     let _participantsBeforeBuy=await lengthOfMemos();
     
     //lets buy lottery    
-    let tx = await chai.connect(_allAddress[_user]).buyChai(_user.toString(),_allAddress[_user].address.toString(),{value:_numbOfEthersToTransfer});
+    let tx = await chai.connect(_allAddress[_user]).buyChai(_user.toString(),"Ehsan",{value:_numbOfEthersToTransfer});
     let receipt = await tx.wait();
     let gasCost = receipt.gasUsed.mul(tx.gasPrice);
 
@@ -93,7 +93,7 @@ describe("chai contract",function()
       {
         await buyChai();
       }
-      listOfMemos();
+      await listOfMemos();
     });
   });
 });
