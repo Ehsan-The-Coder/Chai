@@ -25,7 +25,7 @@ function App() {
         if (ethereum) 
         {
           await ethereum.request({ method: "eth_requestAccounts" }); // Request access to the user's accounts
-          const provider = new ethers.providers.JsonRpcProvider(`https://sepolia.infura.io/v3/2ad3189140a545cbb1ee872c98ab40ee`);
+          const provider = new ethers.providers.Web3Provider(ethereum);
           const signer = provider.getSigner();
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
           setState({ provider, signer, contract });
@@ -49,6 +49,7 @@ function App() {
   return (
     <div className="App">
       <Buy state={state}></Buy>
+      <Memos state={state}></Memos>
     </div>
   );
 }
